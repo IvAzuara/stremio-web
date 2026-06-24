@@ -24,8 +24,12 @@ app.get(['/', '/index.html'], (req, res) => {
 
         let streamingServerUrl = '';
         const configPath = '/etc/stremio-config/stremio-server-url.txt';
-        if (fs.existsSync(configPath)) {
-            streamingServerUrl = fs.readFileSync(configPath, 'utf8').trim();
+        try {
+            if (fs.existsSync(configPath)) {
+                streamingServerUrl = fs.readFileSync(configPath, 'utf8').trim();
+            }
+        } catch (e) {
+            console.error('Error reading streaming server URL:', e);
         }
 
         const injectScript = `<script>window.STREMIO_STREAMING_SERVER_URL = ${JSON.stringify(streamingServerUrl)};</script>`;

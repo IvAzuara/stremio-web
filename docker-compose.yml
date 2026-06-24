@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - /tmp/stremio-config:/etc/stremio-config:ro
+      - /tmp/stremio-config:/etc/stremio-config:ro,z
     restart: unless-stopped
     depends_on:
       - stremio-server
