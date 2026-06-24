@@ -28,11 +28,22 @@ jobs:
           # Levantar el tunel en segundo plano apuntando al puerto 8080 del host
           docker run -d --name cloudflared-tunnel --network host cloudflare/cloudflared:latest tunnel --url http://localhost:8080
           
-          # Esperar a que se asigne el subdominio temporal
-          sleep 5
+          # Esperar a que se asigne el subdominio temporal (máximo 15 segundos)
+          URL=""
+          for i in {1..15}; do
+            URL=$(docker logs cloudflared-tunnel 2>&1 | grep -o 'https://.*\.trycloudflare\.com' | head -n 1)
+            if [ ! -z "$URL" ]; then
+              break
+            fi
+            sleep 1
+          done
           
           echo "=========================================================="
           echo "         SU TUNEL TEMPORAL DE CLOUDFLARE ESTA LISTO"
           echo "=========================================================="
-          docker logs cloudflared-tunnel 2>&1 | grep -o 'https://.*\.trycloudflare\.com' || docker logs cloudflared-tunnel
+          if [ ! -z "$URL" ]; then
+            echo "$URL"
+          else
+            docker logs cloudflared-tunnel
+          fi
           echo "=========================================================="
