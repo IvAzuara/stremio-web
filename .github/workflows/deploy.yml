@@ -18,3 +18,21 @@ jobs:
       - name: Deploy with Docker Compose
         run: |
           docker compose up -d --build
+
+      - name: Start Cloudflared Tunnel
+        run: |
+          # Detener y remover cualquier tunel anterior
+          docker stop cloudflared-tunnel || true
+          docker rm cloudflared-tunnel || true
+          
+          # Levantar el tunel en segundo plano apuntando al puerto 8080 del host
+          docker run -d --name cloudflared-tunnel --network host cloudflare/cloudflared:latest tunnel --url http://localhost:8080
+          
+          # Esperar a que se asigne el subdominio temporal
+          sleep 5
+          
+          echo "=========================================================="
+          echo "         SU TUNEL TEMPORAL DE CLOUDFLARE ESTA LISTO"
+          echo "=========================================================="
+          docker logs cloudflared-tunnel 2>&1 | grep -o 'https://.*\.trycloudflare\.com' || docker logs cloudflared-tunnel
+          echo "=========================================================="
