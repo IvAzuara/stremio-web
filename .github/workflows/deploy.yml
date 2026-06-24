@@ -17,6 +17,7 @@ jobs:
 
       - name: Deploy with Docker Compose
         run: |
+          mkdir -p /tmp/stremio-config
           docker compose up -d --build
 
       - name: Start Cloudflared Tunnels
@@ -48,6 +49,11 @@ jobs:
             fi
             sleep 1
           done
+          
+          # Guardar la URL del servidor para que el contenedor web pueda consumirla e inyectarla
+          if [ ! -z "$URL_SERVER" ]; then
+            echo "$URL_SERVER" > /tmp/stremio-config/stremio-server-url.txt
+          fi
           
           echo "=========================================================="
           echo "         TUNELES TEMPORALES DE CLOUDFLARE LISTOS"

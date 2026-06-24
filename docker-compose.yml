@@ -6,6 +6,8 @@ services:
     container_name: stremio-web
     ports:
       - "8080:8080"
+    volumes:
+      - /tmp/stremio-config:/etc/stremio-config:ro
     restart: unless-stopped
     depends_on:
       - stremio-server

@@ -2,10 +2,15 @@
 
 const CHROMECAST_RECEIVER_APP_ID = '1634F54B';
 const getStreamingServerUrl = () => {
-    if (typeof window !== 'undefined' && window.location && window.location.hostname) {
-        const hostname = window.location.hostname;
-        if (window.location.protocol === 'http:') {
-            return `http://${hostname}:11470/`;
+    if (typeof window !== 'undefined') {
+        if (window.STREMIO_STREAMING_SERVER_URL) {
+            return window.STREMIO_STREAMING_SERVER_URL;
+        }
+        if (window.location && window.location.hostname) {
+            const hostname = window.location.hostname;
+            if (window.location.protocol === 'http:') {
+                return `http://${hostname}:11470/`;
+            }
         }
     }
     return 'http://127.0.0.1:11470/';

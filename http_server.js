@@ -8,16 +8,46 @@ const HTTP_PORT = 8080;
 
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 
 const build_path = path.resolve(__dirname, 'build');
 const index_path = path.join(build_path, 'index.html');
 
-express().use(express.static(build_path, {
-    setHeaders: (res, path) => {
-        if (path === index_path) res.set('cache-control', `public, max-age: ${INDEX_CACHE}`);
-        else res.set('cache-control', `public, max-age: ${ASSETS_CACHE}`);
+const app = express();
+
+// Dynamically inject the streaming server URL into index.html
+app.get(['/', '/index.html'], (req, res) => {
+    fs.readFile(index_path, 'utf8', (err, html) => {
+        if (err) {
+            return res.status(500).send('Error loading index.html');
+        }
+
+        let streamingServerUrl = '';
+        const configPath = '/etc/stremio-config/stremio-server-url.txt';
+        if (fs.existsSync(configPath)) {
+            streamingServerUrl = fs.readFileSync(configPath, 'utf8').trim();
+        }
+
+        const injectScript = `<script>window.STREMIO_STREAMING_SERVER_URL = ${JSON.stringify(streamingServerUrl)};</script>`;
+        const modifiedHtml = html.replace('</head>', `${injectScript}</head>`);
+        
+        res.set('cache-control', `public, max-age: ${INDEX_CACHE}`);
+        res.send(modifiedHtml);
+    });
+});
+
+// Serve other static files
+app.use(express.static(build_path, {
+    setHeaders: (res, filePath) => {
+        if (filePath !== index_path) {
+            res.set('cache-control', `public, max-age: ${ASSETS_CACHE}`);
+        }
     }
-})).all('*', (_req, res) => {
+}));
+
+app.all('*', (_req, res) => {
     // TODO: better 404 page
     res.status(404).send('<h1>404! Page not found</h1>');
-}).listen(HTTP_PORT, () => console.info(`Server listening on port: ${HTTP_PORT}`));
+});
+
+app.listen(HTTP_PORT, () => console.info(`Server listening on port: ${HTTP_PORT}`));
