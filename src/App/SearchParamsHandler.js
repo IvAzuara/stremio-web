@@ -52,6 +52,42 @@ const SearchParamsHandler = () => {
     }, [searchParams]);
 
     React.useEffect(() => {
+        if (typeof window !== 'undefined' && window.STREMIO_STREAMING_SERVER_URL) {
+            const injectedUrl = window.STREMIO_STREAMING_SERVER_URL;
+            const currentUrl = profile.settings.streamingServerUrl;
+            
+            const isLocalhost = !currentUrl || currentUrl.includes('127.0.0.1') || currentUrl.includes('localhost');
+            const isOldTunnel = currentUrl && currentUrl.includes('.trycloudflare.com') && currentUrl !== injectedUrl;
+            
+            if (isLocalhost || isOldTunnel) {
+                core.transport.dispatch({
+                    action: 'Ctx',
+                    args: {
+                        action: 'UpdateSettings',
+                        args: {
+                            ...profile.settings,
+                            streamingServerUrl: injectedUrl,
+                        },
+                    },
+                });
+                core.transport.dispatch({
+                    action: 'Ctx',
+                    args: {
+                        action: 'AddServerUrl',
+                        args: injectedUrl,
+                    },
+                });
+                toast.show({
+                    type: 'success',
+                    title: 'Servidor de Streaming Remoto Conectado',
+                    message: `URL: ${injectedUrl}`,
+                    timeout: 4000,
+                });
+            }
+        }
+    }, [profile.settings.streamingServerUrl]);
+
+    React.useEffect(() => {
         onLocationChange();
         window.addEventListener('hashchange', onLocationChange);
         return () => window.removeEventListener('hashchange', onLocationChange);
