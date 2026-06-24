@@ -4,7 +4,9 @@ const CHROMECAST_RECEIVER_APP_ID = '1634F54B';
 const getStreamingServerUrl = () => {
     if (typeof window !== 'undefined' && window.location && window.location.hostname) {
         const hostname = window.location.hostname;
-        return `http://${hostname}:11470/`;
+        if (window.location.protocol === 'http:') {
+            return `http://${hostname}:11470/`;
+        }
     }
     return 'http://127.0.0.1:11470/';
 };

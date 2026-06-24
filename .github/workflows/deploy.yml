@@ -19,31 +19,50 @@ jobs:
         run: |
           docker compose up -d --build
 
-      - name: Start Cloudflared Tunnel
+      - name: Start Cloudflared Tunnels
         run: |
-          # Detener y remover cualquier tunel anterior
+          # Detener y remover cualquier tunel anterior de la Web UI y el Server
           docker stop cloudflared-tunnel || true
           docker rm cloudflared-tunnel || true
+          docker stop cloudflared-tunnel-server || true
+          docker rm cloudflared-tunnel-server || true
           
-          # Levantar el tunel en segundo plano apuntando al puerto 8080 del host
+          # Levantar el tunel en segundo plano para la Web UI (puerto 8080)
           docker run -d --name cloudflared-tunnel --network host cloudflare/cloudflared:latest tunnel --url http://localhost:8080
           
-          # Esperar a que se asigne el subdominio temporal (máximo 15 segundos)
-          URL=""
+          # Levantar el tunel en segundo plano para el Streaming Server (puerto 11470)
+          docker run -d --name cloudflared-tunnel-server --network host cloudflare/cloudflared:latest tunnel --url http://localhost:11470
+          
+          # Esperar a que se asignen los subdominios temporales (máximo 15 segundos)
+          URL_WEB=""
+          URL_SERVER=""
           for i in {1..15}; do
-            URL=$(docker logs cloudflared-tunnel 2>&1 | grep -o 'https://.*\.trycloudflare\.com' | head -n 1)
-            if [ ! -z "$URL" ]; then
+            if [ -z "$URL_WEB" ]; then
+              URL_WEB=$(docker logs cloudflared-tunnel 2>&1 | grep -o 'https://.*\.trycloudflare\.com' | head -n 1)
+            fi
+            if [ -z "$URL_SERVER" ]; then
+              URL_SERVER=$(docker logs cloudflared-tunnel-server 2>&1 | grep -o 'https://.*\.trycloudflare\.com' | head -n 1)
+            fi
+            if [ ! -z "$URL_WEB" ] && [ ! -z "$URL_SERVER" ]; then
               break
             fi
             sleep 1
           done
           
           echo "=========================================================="
-          echo "         SU TUNEL TEMPORAL DE CLOUDFLARE ESTA LISTO"
+          echo "         TUNELES TEMPORALES DE CLOUDFLARE LISTOS"
           echo "=========================================================="
-          if [ ! -z "$URL" ]; then
-            echo "$URL"
+          if [ ! -z "$URL_WEB" ]; then
+            echo "Stremio Web UI: $URL_WEB"
           else
-            docker logs cloudflared-tunnel
+            echo "Error iniciando el túnel de Stremio Web UI. Logs:"
+            docker logs cloudflared-tunnel | tail -n 20
+          fi
+          if [ ! -z "$URL_SERVER" ]; then
+            echo "Stremio Streaming Server (HTTPS): $URL_SERVER"
+            echo "Copie esta URL en Ajustes -> Streaming en Stremio Web"
+          else
+            echo "Error iniciando el túnel del Servidor de Streaming. Logs:"
+            docker logs cloudflared-tunnel-server | tail -n 20
           fi
           echo "=========================================================="
