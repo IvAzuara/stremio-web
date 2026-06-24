@@ -1,0 +1,26 @@
+services:
+  stremio-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stremio-web
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      - stremio-server
+
+  stremio-server:
+    image: stremio/server:latest
+    container_name: stremio-server
+    ports:
+      - "11470:11470"
+      - "12470:12470"
+    environment:
+      - NO_CORS=1
+    volumes:
+      - stremio-server-data:/root/.stremio-server
+    restart: unless-stopped
+
+volumes:
+  stremio-server-data:

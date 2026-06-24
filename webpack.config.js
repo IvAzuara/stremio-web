@@ -12,7 +12,12 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const packageJson = require('./package.json');
 
-const COMMIT_HASH = execSync('git rev-parse HEAD').toString().trim();
+let COMMIT_HASH = 'docker-build';
+try {
+    COMMIT_HASH = execSync('git rev-parse HEAD').toString().trim();
+} catch (e) {
+    console.warn('Warning: Could not get git commit hash, using default fallback.', e.message);
+}
 
 const THREAD_LOADER = {
     loader: 'thread-loader',

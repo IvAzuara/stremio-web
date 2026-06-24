@@ -144,6 +144,37 @@ const App = () => {
     }, [profile.settings, shell.state.windowClosed]);
 
     React.useEffect(() => {
+        if (profile && Array.isArray(profile.addons)) {
+            const hasTorrentio = profile.addons.some(
+                (addon) => addon && addon.transportUrl === 'https://torrentio.strem.fun/manifest.json'
+            );
+            if (!hasTorrentio) {
+                console.log('Auto-installing Torrentio addon...');
+                core.transport.dispatch({
+                    action: 'Ctx',
+                    args: {
+                        action: 'InstallAddon',
+                        args: {
+                            transportUrl: 'https://torrentio.strem.fun/manifest.json',
+                            manifest: {
+                                id: 'community.torrentio',
+                                version: '0.0.14',
+                                name: 'Torrentio',
+                                description: 'Provides torrent streams from public providers (RARBG, 1337x, YTS, ThePirateBay, KickassTorrents, etc.). Supports debrid services (RealDebrid, Premiumize, AllDebrid, DebridLink) and other options.',
+                                logo: 'https://torrentio.strem.fun/logo.png',
+                                types: ['movie', 'series'],
+                                resources: ['stream'],
+                                catalogs: [],
+                                idPrefixes: ['tt']
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }, [profile, core.transport]);
+
+    React.useEffect(() => {
         const onWindowFocus = () => {
             core.transport.dispatch({
                 action: 'Ctx',

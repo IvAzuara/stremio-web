@@ -1,7 +1,14 @@
 // Copyright (C) 2017-2023 Smart code 203358507
 
 const CHROMECAST_RECEIVER_APP_ID = '1634F54B';
-const DEFAULT_STREAMING_SERVER_URL = 'http://127.0.0.1:11470/';
+const getStreamingServerUrl = () => {
+    if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+        const hostname = window.location.hostname;
+        return `http://${hostname}:11470/`;
+    }
+    return 'http://127.0.0.1:11470/';
+};
+const DEFAULT_STREAMING_SERVER_URL = getStreamingServerUrl();
 const DEFAULT_SUBTITLES_LANGUAGE = 'eng';
 const LOCAL_SUBTITLES_LANGUAGE = 'local';
 const SUBTITLES_SIZES = [75, 100, 125, 150, 175, 200, 250];
