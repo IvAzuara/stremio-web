@@ -28,11 +28,11 @@ jobs:
           docker stop cloudflared-tunnel-server || true
           docker rm cloudflared-tunnel-server || true
           
-          # Levantar el tunel en segundo plano para la Web UI (puerto 8080)
-          docker run -d --name cloudflared-tunnel --network host cloudflare/cloudflared:latest tunnel --url http://localhost:8080
+          # Levantar el tunel en segundo plano para la Web UI (puerto 8080) con métricas en puerto aleatorio
+          docker run -d --name cloudflared-tunnel --network host cloudflare/cloudflared:latest tunnel --url http://localhost:8080 --metrics localhost:0
           
-          # Levantar el tunel en segundo plano para el Streaming Server (puerto 11470)
-          docker run -d --name cloudflared-tunnel-server --network host cloudflare/cloudflared:latest tunnel --url http://localhost:11470
+          # Levantar el tunel en segundo plano para el Streaming Server (puerto 11470) con métricas en puerto aleatorio
+          docker run -d --name cloudflared-tunnel-server --network host cloudflare/cloudflared:latest tunnel --url http://localhost:11470 --metrics localhost:0
           
           # Esperar a que se asignen los subdominios temporales (máximo 15 segundos)
           URL_WEB=""
