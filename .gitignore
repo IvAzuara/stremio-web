@@ -1,1 +1,3 @@
 stremio-cache/
+node_modules/
+build/
